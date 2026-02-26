@@ -7,6 +7,7 @@ import (
 	"notes-app/internal/config"
 	"notes-app/internal/db"
 	"notes-app/internal/handler"
+	"notes-app/internal/middleware"
 	"notes-app/internal/repository"
 	"notes-app/internal/router"
 	"notes-app/internal/service"
@@ -29,6 +30,8 @@ func main() {
 
 	r := router.NewRouter(noteHandler)
 
+	wrapped := middleware.Logging(r)
+
 	log.Println("Server running on :" + cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
+	log.Fatal(http.ListenAndServe(":"+cfg.Port, wrapped))
 }
