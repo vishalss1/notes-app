@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"notes-app/internal/model"
 	"notes-app/internal/service"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type NoteHandler struct {
@@ -16,11 +17,6 @@ type NoteHandler struct {
 
 func NewNoteHandler(s *service.NoteService) *NoteHandler {
 	return &NoteHandler{service: s}
-}
-
-func extractID(path string) (int, error) {
-	parts := strings.Split(strings.Trim(path, "/"), "/")
-	return strconv.Atoi(parts[len(parts)-1])
 }
 
 func (h *NoteHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +50,8 @@ func (h *NoteHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NoteHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := extractID(r.URL.Path)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -71,7 +68,8 @@ func (h *NoteHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NoteHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := extractID(r.URL.Path)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -85,8 +83,7 @@ func (h *NoteHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	req.ID = id
 
-	err = h.service.Update(r.Context(), req)
-	if err != nil {
+	if err := h.service.Update(r.Context(), req); err != nil {
 		http.Error(w, "update failed", http.StatusInternalServerError)
 		return
 	}
@@ -95,14 +92,14 @@ func (h *NoteHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NoteHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	id, err := extractID(r.URL.Path)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.Delete(r.Context(), id)
-	if err != nil {
+	if err := h.service.Delete(r.Context(), id); err != nil {
 		http.Error(w, "delete failed", http.StatusInternalServerError)
 		return
 	}

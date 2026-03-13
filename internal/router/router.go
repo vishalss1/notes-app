@@ -2,44 +2,33 @@ package router
 
 import (
 	"net/http"
-	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"notes-app/internal/handler"
 )
 
-func NewRouter(noteHandler *handler.NoteHandler) http.Handler {
-	mux := http.NewServeMux()
+func NewRouter(noteHandler *handler.NoteHandler) *chi.Mux {
+	r := chi.NewRouter()
 
-	mux.HandleFunc("/notes", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			noteHandler.GetAll(w, r)
-		case http.MethodPost:
-			noteHandler.Create(w, r)
-		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	// API routes
+	r.Route("/notes", func(r chi.Router) {
+		r.Get("/", noteHandler.GetAll)
+		r.Post("/", noteHandler.Create)
+		r.Get("/{id}", noteHandler.GetByID)
+		r.Put("/{id}", noteHandler.Update)
+		r.Delete("/{id}", noteHandler.Delete)
 	})
 
-	mux.HandleFunc("/notes/", func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/notes/") {
-			http.NotFound(w, r)
-			return
-		}
+	// Serve static frontend from ./web
+	fileServer := http.FileServer(http.Dir("./web"))
+	r.Handle("/*", fileServer)
 
-		switch r.Method {
-		case http.MethodGet:
-			noteHandler.GetByID(w, r)
-		case http.MethodPut:
-			noteHandler.Update(w, r)
-		case http.MethodDelete:
-			noteHandler.Delete(w, r)
-		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	mux.Handle("/", http.FileServer(http.Dir("./web")))
-
-	return mux
+	return r
 }

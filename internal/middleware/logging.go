@@ -31,7 +31,7 @@ func Logging(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		log.Printf(
-			"%s | %d | %s | %s | %v",
+			"%s %d %s %s %v",
 			time.Now().Format(time.RFC3339),
 			rw.statusCode,
 			r.Method,
