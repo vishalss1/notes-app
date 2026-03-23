@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
+    <meta name="description" content="A secure notes application with user authentication">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,32 +13,69 @@
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <h1><i class="fa-solid fa-book-open"></i> Notes</h1>
-        </header>
+        <!-- Auth Section -->
+        <section id="auth-section" class="auth-section">
+            <div class="auth-card glass-panel">
+                <div class="auth-header">
+                    <h1><i class="fa-solid fa-book-open"></i> Notes</h1>
+                    <p class="auth-subtitle" id="auth-subtitle">Sign in to your account</p>
+                </div>
 
-        <main>
-            <section class="add-note-section">
-                <form id="note-form" class="glass-panel">
-                    <input type="hidden" id="note-id">
+                <form id="auth-form" class="auth-form">
                     <div class="form-group">
-                        <input type="text" id="note-title" placeholder="Note Title" required>
+                        <label for="auth-email">Email</label>
+                        <input type="email" id="auth-email" placeholder="you@example.com" required>
                     </div>
                     <div class="form-group">
-                        <textarea id="note-content" placeholder="Write your note here..." rows="4" required></textarea>
+                        <label for="auth-password">Password</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" required minlength="6">
                     </div>
-                    <div class="form-actions">
-                        <button type="submit" id="submit-btn" class="btn primary-btn"><i class="fa-solid fa-plus"></i> Add Note</button>
-                        <button type="button" id="cancel-edit-btn" class="btn secondary-btn hidden"><i class="fa-solid fa-xmark"></i> Cancel</button>
-                    </div>
+                    <div id="auth-error" class="auth-error hidden"></div>
+                    <button type="submit" id="auth-submit-btn" class="btn primary-btn auth-btn">
+                        <i class="fa-solid fa-right-to-bracket"></i> Login
+                    </button>
                 </form>
-            </section>
 
-            <section class="notes-grid" id="notes-container">
-                <!-- Notes will be inserted here dynamically -->
-                <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading notes...</div>
-            </section>
-        </main>
+                <div class="auth-toggle">
+                    <span id="auth-toggle-text">Don't have an account?</span>
+                    <button type="button" id="auth-toggle-btn" class="link-btn">Sign up</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- App Section -->
+        <section id="app-section" class="hidden">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fa-solid fa-book-open"></i> Notes</h1>
+                    <button id="logout-btn" class="btn secondary-btn logout-btn" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <main>
+                <section class="add-note-section">
+                    <form id="note-form" class="glass-panel">
+                        <input type="hidden" id="note-id">
+                        <div class="form-group">
+                            <input type="text" id="note-title" placeholder="Note Title" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="note-content" placeholder="Write your note here..." rows="4" required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submit-btn" class="btn primary-btn"><i class="fa-solid fa-plus"></i> Add Note</button>
+                            <button type="button" id="cancel-edit-btn" class="btn secondary-btn hidden"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="notes-grid" id="notes-container">
+                    <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading notes...</div>
+                </section>
+            </main>
+        </section>
     </div>
 
     <!-- Template for a note card -->

@@ -21,13 +21,18 @@ func main() {
 	}
 	defer pool.Close()
 
+	db.RunMigrations(cfg.DatabaseURL)
+
 	noteRepo := repository.NewPostgresNoteRepository(pool)
-
 	noteService := service.NewNoteService(noteRepo)
-
 	noteHandler := handler.NewNoteHandler(noteService)
 
-	r := router.NewRouter(noteHandler)
+	userRepo := repository.NewPostgresUserRepository(pool)
+	refreshTokenRepo := repository.NewPostgresRefreshTokenRepository(pool)
+	userService := service.NewUserService(userRepo, refreshTokenRepo, cfg.JWTSecret)
+	userHandler := handler.NewUserHandler(userService)
+
+	r := router.NewRouter(noteHandler, userHandler, cfg.JWTSecret)
 
 	log.Println("Server running on :" + cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))

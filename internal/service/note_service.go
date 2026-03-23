@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"notes-app/internal/model"
 	"notes-app/internal/repository"
 )
@@ -12,18 +13,20 @@ type NoteService struct {
 }
 
 func NewNoteService(r repository.NoteRepository) *NoteService {
-	return &NoteService{
-		repo: r,
-	}
+	return &NoteService{repo: r}
 }
 
 func (s *NoteService) Create(
 	ctx context.Context,
 	note model.Note,
-) (model.Note, error) {
+) (*model.Note, error) {
 
 	if note.Title == "" {
-		return model.Note{}, errors.New("title cannot be empty")
+		return nil, errors.New("title cannot be empty")
+	}
+
+	if note.UserID == "" {
+		return nil, errors.New("user_id is required")
 	}
 
 	return s.repo.Create(ctx, note)
@@ -31,47 +34,51 @@ func (s *NoteService) Create(
 
 func (s *NoteService) GetAll(
 	ctx context.Context,
+	userID string,
 ) ([]model.Note, error) {
 
-	return s.repo.GetAll(ctx)
+	return s.repo.GetAll(ctx, userID)
 }
 
 func (s *NoteService) GetByID(
 	ctx context.Context,
-	id int,
-) (model.Note, error) {
+	id string,
+	userID string,
+) (*model.Note, error) {
 
-	if id <= 0 {
-		return model.Note{}, errors.New("invalid id")
+	if id == "" {
+		return nil, errors.New("invalid id")
 	}
 
-	return s.repo.GetByID(ctx, id)
+	return s.repo.GetByID(ctx, id, userID)
 }
 
 func (s *NoteService) Update(
 	ctx context.Context,
 	note model.Note,
-) error {
+	userID string,
+) (*model.Note, error) {
 
-	if note.ID <= 0 {
-		return errors.New("invalid id")
+	if note.ID == "" {
+		return nil, errors.New("invalid id")
 	}
 
 	if note.Title == "" {
-		return errors.New("title cannot be empty")
+		return nil, errors.New("title cannot be empty")
 	}
 
-	return s.repo.Update(ctx, note)
+	return s.repo.Update(ctx, note, userID)
 }
 
 func (s *NoteService) Delete(
 	ctx context.Context,
-	id int,
+	id string,
+	userID string,
 ) error {
 
-	if id <= 0 {
+	if id == "" {
 		return errors.New("invalid id")
 	}
 
-	return s.repo.Delete(ctx, id)
+	return s.repo.Delete(ctx, id, userID)
 }

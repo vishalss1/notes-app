@@ -4,21 +4,36 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 
-	"notes-app/internal/handler"
+	appHandler "notes-app/internal/handler"
+	appMiddleware "notes-app/internal/middleware"
 )
 
-func NewRouter(noteHandler *handler.NoteHandler) *chi.Mux {
+func NewRouter(
+	noteHandler *appHandler.NoteHandler,
+	userHandler *appHandler.UserHandler,
+	jwtSecret string,
+) *chi.Mux {
+
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	r.Use(chiMiddleware.RequestID)
+	r.Use(chiMiddleware.RealIP)
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
+	r.Use(appMiddleware.Logging)
 
-	// API routes
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/signup", userHandler.Signup)
+		r.Post("/login", userHandler.Login)
+		r.Post("/refresh", userHandler.Refresh)
+		r.Post("/logout", userHandler.Logout)
+	})
+
 	r.Route("/notes", func(r chi.Router) {
+		r.Use(appMiddleware.JWTAuth(jwtSecret))
+
 		r.Get("/", noteHandler.GetAll)
 		r.Post("/", noteHandler.Create)
 		r.Get("/{id}", noteHandler.GetByID)
@@ -26,7 +41,6 @@ func NewRouter(noteHandler *handler.NoteHandler) *chi.Mux {
 		r.Delete("/{id}", noteHandler.Delete)
 	})
 
-	// Serve static frontend from ./web
 	fileServer := http.FileServer(http.Dir("./web"))
 	r.Handle("/*", fileServer)
 
